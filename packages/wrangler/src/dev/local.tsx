@@ -34,6 +34,7 @@ interface LocalProps {
 	enableLocalPersistence: boolean;
 	liveReload: boolean;
 	crons: Config["triggers"]["crons"];
+	queueConsumers: Config["queues"]["consumers"];
 	localProtocol: "http" | "https";
 	localUpstream: string | undefined;
 	inspect: boolean;
@@ -70,6 +71,7 @@ function useLocalWorker({
 	liveReload,
 	ip,
 	crons,
+	queueConsumers,
 	localProtocol,
 	localUpstream,
 	inspect,
@@ -78,6 +80,8 @@ function useLocalWorker({
 	logPrefix,
 	enablePagesAssetsServiceBinding,
 }: LocalProps) {
+	console.log(`useLocalWorker bindings ${JSON.stringify(bindings)}`);
+
 	// TODO: pass vars via command line
 	const local = useRef<ChildProcess>();
 	const removeSignalExitListener = useRef<() => void>();
@@ -225,6 +229,15 @@ function useLocalWorker({
 				usageModel,
 				kvNamespaces: bindings.kv_namespaces?.map((kv) => kv.binding),
 				r2Buckets: bindings.r2_buckets?.map((r2) => r2.binding),
+				queueBindings: bindings.queues?.map((queue) => {
+					console.log(`Queue binding: ${queue.queue_name}`);
+					return { name: queue.binding, queueName: queue.queue_name };
+				}),
+				queueConsumers: queueConsumers.map((consumer) => {
+					// TODO(now) other settings
+					console.log(`adding consumer for ${consumer.queue}`);
+					return { queueName: consumer.queue };
+				}),
 				durableObjects: Object.fromEntries(
 					internalDurableObjects.map((binding) => [
 						binding.name,
@@ -303,6 +316,7 @@ function useLocalWorker({
 				"../miniflare-dist/index.mjs"
 			);
 			const miniflareOptions = JSON.stringify(options, null);
+			console.log(miniflareOptions);
 
 			logger.log("⎔ Starting a local server...");
 			const nodeOptions = [

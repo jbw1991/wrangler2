@@ -408,6 +408,7 @@ export async function startDev(args: StartDevOptions) {
 					usageModel={configParam.usage_model}
 					bindings={bindings}
 					crons={configParam.triggers.crons}
+					queueConsumers={configParam.queues.consumers}
 					logLevel={args.logLevel}
 					logPrefix={args.logPrefix}
 					onReady={args.onReady}
@@ -668,7 +669,11 @@ async function getBindings(
 				...(args.durableObjects || []),
 			],
 		},
-		queues: [], // TODO
+		queues: [
+			...configParam.queues.producers.map((queue) => {
+				return { binding: queue.binding, queue_name: queue.queue };
+			}),
+		],
 		r2_buckets: [
 			...(configParam.r2_buckets?.map(
 				({ binding, preview_bucket_name, bucket_name: _bucket_name }) => {

@@ -42,6 +42,8 @@ async function main() {
 			choices: enumKeys(LogLevel),
 		}).argv;
 
+	console.log(`raw args: ${args._[0] as string}`);
+
 	const logLevel = LogLevel[args.log ?? "INFO"];
 	const requestContextCheckOptions = await getRequestContextCheckOptions();
 	const config = {
@@ -56,6 +58,7 @@ async function main() {
 	if (logLevel > LogLevel.INFO) {
 		console.log("OPTIONS:\n", JSON.stringify(config, null, 2));
 	}
+	console.log(`Got bindings: ${JSON.stringify(config.queueBindings)}`);
 
 	config.bindings = {
 		...config.bindings,
